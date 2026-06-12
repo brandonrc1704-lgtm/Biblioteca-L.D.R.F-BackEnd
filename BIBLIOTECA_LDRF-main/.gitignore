@@ -1,0 +1,13 @@
+bin/
+obj/
+.vs/
+*.user
+*.suo
+
+# Archivos subidos en pruebas/local. En produccion deben ir a storage externo.
+BibliotecaLDRFApis/wwwroot/uploads/
+BibliotecaApi/wwwroot/uploads/
+
+# Build/publish
+publish/
+out/

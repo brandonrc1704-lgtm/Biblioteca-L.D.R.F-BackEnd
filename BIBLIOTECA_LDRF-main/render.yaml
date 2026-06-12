@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: biblioteca-ldrf-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Jwt__Issuer
+        value: BibliotecaLDRF
+      - key: Jwt__Audience
+        value: BibliotecaLDRF
+      - key: Jwt__Key
+        sync: false
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: Cors__AllowedOrigins__0
+        sync: false

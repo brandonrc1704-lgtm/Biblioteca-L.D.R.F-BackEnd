@@ -1,0 +1,7 @@
+<Solution>
+  <Project Path="Biblioteca.AccesoDatos/Tienda.AccesoDatos.csproj" />
+  <Project Path="Biblioteca.Dominio/Tienda.Dominio.csproj" Id="b8fafa00-8fe0-4d8c-9843-87870d3aea47" />
+  <Project Path="Biblioteca.LogicaNegocio/Tienda.LogicaNegocio.csproj" Id="d45d27e1-cd14-4c63-b85a-d738519d3d86" />
+  <Project Path="Biblioteca.Utilitarios/Tienda.Utilitarios.csproj" Id="dcd4011e-ad26-4f23-a83d-123a2dd111f5" />
+  <Project Path="BibliotecaApi/TiendaApi.csproj" Id="02cc48aa-3855-4325-a6c9-490a53d38d97" />
+</Solution>

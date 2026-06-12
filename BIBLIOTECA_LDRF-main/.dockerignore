@@ -1,0 +1,11 @@
+**/bin/
+**/obj/
+.vs/
+.git/
+.agents/
+.codex/
+Dockerfile
+render.yaml
+**/wwwroot/uploads/
+**/*.user
+**/*.suo
