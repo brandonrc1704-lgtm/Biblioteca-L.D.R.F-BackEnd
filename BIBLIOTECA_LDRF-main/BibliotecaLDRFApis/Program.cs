@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.FileProviders;
 using System.Text;
 using TiendaBatarazo.AccesoDatos.Context;
 using TiendaBatarazo.AccesoDatos.Implementaciones;
@@ -86,7 +87,22 @@ if (!app.Environment.IsProduction())
 
 app.UseCors("FrontendOnly");
 
-app.UseStaticFiles();
+var webRootPath = app.Environment.WebRootPath;
+if (string.IsNullOrWhiteSpace(webRootPath))
+{
+    webRootPath = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+    app.Environment.WebRootPath = webRootPath;
+}
+
+Directory.CreateDirectory(webRootPath);
+Directory.CreateDirectory(Path.Combine(webRootPath, "uploads", "portadas"));
+Directory.CreateDirectory(Path.Combine(webRootPath, "uploads", "libros-digitales"));
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new PhysicalFileProvider(webRootPath),
+    RequestPath = ""
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
