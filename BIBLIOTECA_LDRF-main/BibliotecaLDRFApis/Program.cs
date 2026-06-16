@@ -1,5 +1,6 @@
 using Biblioteca.Dominio.InterfaceLN;
 using Biblioteca.Dominio.InterfacesAD;
+using BibliotecaLDRFApis.Services;
 using Biblioteca.LogicaNegocio;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -35,6 +36,7 @@ builder.Services.AddScoped<IDescargaLN, DescargaLN>();
 builder.Services.AddScoped<IPrestamoLN, PrestamoLN>();
 builder.Services.AddScoped<ISancionLN, SancionLN>();
 builder.Services.AddScoped<IHorarioSeccionLN, HorarioSeccionLN>();
+builder.Services.AddScoped<IR2StorageService, R2StorageService>();
 
 builder.Services.AddCors(options =>
 {

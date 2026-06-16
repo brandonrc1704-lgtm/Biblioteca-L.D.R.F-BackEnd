@@ -1,3 +1,4 @@
+using BibliotecaLDRFApis.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
@@ -20,11 +21,11 @@ namespace BibliotecaLDRFApis.Controllers
             ".gif"
         };
 
-        private readonly IWebHostEnvironment _environment;
+        private readonly IR2StorageService _storageService;
 
-        public PortadaController(IWebHostEnvironment environment)
+        public PortadaController(IR2StorageService storageService)
         {
-            _environment = environment;
+            _storageService = storageService;
         }
 
         [HttpPost("subir")]
@@ -47,26 +48,12 @@ namespace BibliotecaLDRFApis.Controllers
                 return BadRequest("Solo se permiten imagenes JPG, PNG, WEBP o GIF.");
             }
 
-            var webRoot = _environment.WebRootPath;
-            if (string.IsNullOrWhiteSpace(webRoot))
-            {
-                webRoot = Path.Combine(_environment.ContentRootPath, "wwwroot");
-            }
-
-            var carpeta = Path.Combine(webRoot, "uploads", "portadas");
-            Directory.CreateDirectory(carpeta);
-
             var nombreSeguro = CrearNombreSeguro(archivo.FileName);
-            var rutaFisica = Path.Combine(carpeta, nombreSeguro);
-
-            await using (var stream = new FileStream(rutaFisica, FileMode.Create))
-            {
-                await archivo.CopyToAsync(stream);
-            }
+            var portadaUrl = await _storageService.UploadAsync(archivo, "portadas", nombreSeguro, HttpContext.RequestAborted);
 
             return Ok(new
             {
-                portadaUrl = $"/uploads/portadas/{nombreSeguro}",
+                portadaUrl,
                 nombre = nombreSeguro,
                 tamanoKb = Math.Round(archivo.Length / 1024d, 2)
             });
