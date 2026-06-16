@@ -42,7 +42,8 @@ public sealed class R2StorageService : IR2StorageService
             Key = key,
             InputStream = stream,
             ContentType = archivo.ContentType,
-            AutoCloseStream = false
+            AutoCloseStream = false,
+            DisablePayloadSigning = true
         };
 
         await _s3Client.PutObjectAsync(request, cancellationToken);

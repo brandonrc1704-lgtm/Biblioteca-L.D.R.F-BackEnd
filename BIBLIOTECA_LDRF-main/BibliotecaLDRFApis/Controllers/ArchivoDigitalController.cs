@@ -1,4 +1,5 @@
 using BibliotecaLDRFApis.Services;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
@@ -39,8 +40,21 @@ namespace BibliotecaLDRFApis.Controllers
                 return BadRequest("Solo se permiten archivos PDF.");
             }
 
+            string archivoUrl;
             var nombreSeguro = CrearNombreSeguro(archivo.FileName);
-            var archivoUrl = await _storageService.UploadAsync(archivo, "libros-digitales", nombreSeguro, HttpContext.RequestAborted);
+
+            try
+            {
+                archivoUrl = await _storageService.UploadAsync(archivo, "libros-digitales", nombreSeguro, HttpContext.RequestAborted);
+            }
+            catch (AmazonS3Exception error)
+            {
+                return StatusCode(502, $"Cloudflare R2 rechazo el PDF: {error.Message}");
+            }
+            catch (InvalidOperationException error)
+            {
+                return StatusCode(500, error.Message);
+            }
 
             return Ok(new
             {

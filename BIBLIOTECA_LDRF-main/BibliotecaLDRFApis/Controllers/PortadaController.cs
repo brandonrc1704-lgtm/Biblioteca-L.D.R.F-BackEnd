@@ -1,4 +1,5 @@
 using BibliotecaLDRFApis.Services;
+using Amazon.S3;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Globalization;
@@ -48,8 +49,21 @@ namespace BibliotecaLDRFApis.Controllers
                 return BadRequest("Solo se permiten imagenes JPG, PNG, WEBP o GIF.");
             }
 
+            string portadaUrl;
             var nombreSeguro = CrearNombreSeguro(archivo.FileName);
-            var portadaUrl = await _storageService.UploadAsync(archivo, "portadas", nombreSeguro, HttpContext.RequestAborted);
+
+            try
+            {
+                portadaUrl = await _storageService.UploadAsync(archivo, "portadas", nombreSeguro, HttpContext.RequestAborted);
+            }
+            catch (AmazonS3Exception error)
+            {
+                return StatusCode(502, $"Cloudflare R2 rechazo la portada: {error.Message}");
+            }
+            catch (InvalidOperationException error)
+            {
+                return StatusCode(500, error.Message);
+            }
 
             return Ok(new
             {
