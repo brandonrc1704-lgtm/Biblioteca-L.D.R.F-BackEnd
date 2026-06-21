@@ -68,6 +68,7 @@ public partial class AppDbContext : DbContext
                 table.HasCheckConstraint("chk_inventario_tipo_objeto", "tipo_objeto IN ('libro_fisico', 'libro_digital', 'equipo_institucion')");
                 table.HasCheckConstraint("chk_inventario_tipo_archivo", "tipo_archivo IN ('pdf', 'epub') OR tipo_archivo IS NULL");
                 table.HasCheckConstraint("chk_inventario_estado", "estado IN ('disponible', 'prestado', 'danado', 'baja')");
+                table.HasCheckConstraint("chk_inventario_visibilidad", "visibilidad IN ('todos', 'estudiantes', 'personal')");
                 table.HasCheckConstraint("chk_inventario_stock", "stock_fisico >= 0");
             });
 
@@ -90,6 +91,7 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.StockFisico).HasColumnName("stock_fisico").HasDefaultValue(0);
             entity.Property(e => e.PermitePrestamo).HasColumnName("permite_prestamo").HasDefaultValue(true);
             entity.Property(e => e.PermiteDescarga).HasColumnName("permite_descarga").HasDefaultValue(false);
+            entity.Property(e => e.Visibilidad).HasColumnName("visibilidad").HasMaxLength(20).HasDefaultValue("todos");
             entity.Property(e => e.Estado).HasColumnName("estado").HasMaxLength(20).HasDefaultValue("disponible");
             entity.Property(e => e.CreadoEn).HasColumnName("creado_en").HasDefaultValueSql("NOW()");
             entity.Property(e => e.ActualizadoEn).HasColumnName("actualizado_en").HasDefaultValueSql("NOW()");

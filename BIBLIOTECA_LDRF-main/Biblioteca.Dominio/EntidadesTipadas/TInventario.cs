@@ -23,6 +23,7 @@ namespace Biblioteca.Dominio.EntidadesTipadas
         public int StockFisico { get; set; }
         public bool PermitePrestamo { get; set; } = true;
         public bool PermiteDescarga { get; set; }
+        public string Visibilidad { get; set; } = "todos";
         public string Estado { get; set; } = "disponible";
         public DateTime CreadoEn { get; set; }
         public DateTime ActualizadoEn { get; set; }

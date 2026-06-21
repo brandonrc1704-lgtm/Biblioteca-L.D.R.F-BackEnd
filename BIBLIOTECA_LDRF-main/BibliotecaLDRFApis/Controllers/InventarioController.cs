@@ -21,13 +21,19 @@ namespace BibliotecaLDRFApis.Controllers
         public async Task<ActionResult<TInventario>> GetById(int id)
         {
             var inventario = await _inventarioLN.ObtenerPorIdAsync(id);
-            return inventario is null ? NotFound() : Ok(inventario);
+            if (inventario is null || !PuedeVer(inventario))
+            {
+                return NotFound();
+            }
+
+            return Ok(inventario);
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<TInventario>>> GetAll()
         {
-            return Ok(await _inventarioLN.ObtenerTodosAsync());
+            var inventario = await _inventarioLN.ObtenerTodosAsync();
+            return Ok(inventario.Where(PuedeVer));
         }
 
         [HttpPost]
@@ -54,6 +60,22 @@ namespace BibliotecaLDRFApis.Controllers
         {
             await _inventarioLN.EliminarInventarioAsync(id);
             return NoContent();
+        }
+
+        private bool PuedeVer(TInventario inventario)
+        {
+            if (User.IsInRole("administracion") || User.IsInRole("maestro"))
+            {
+                return true;
+            }
+
+            if (inventario.TipoObjeto != "equipo_institucion")
+            {
+                return true;
+            }
+
+            var visibilidad = (inventario.Visibilidad ?? "todos").Trim().ToLowerInvariant();
+            return visibilidad is "todos" or "estudiantes";
         }
     }
 }

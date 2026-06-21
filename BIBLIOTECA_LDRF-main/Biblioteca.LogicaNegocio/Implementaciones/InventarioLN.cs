@@ -77,6 +77,7 @@ namespace Biblioteca.LogicaNegocio
             existente.StockFisico = inventario.StockFisico;
             existente.PermitePrestamo = inventario.PermitePrestamo;
             existente.PermiteDescarga = inventario.PermiteDescarga;
+            existente.Visibilidad = NormalizarVisibilidad(inventario.Visibilidad);
             existente.Estado = inventario.Estado;
             existente.CreadoEn = existente.CreadoEn == default ? DateTime.UtcNow : existente.CreadoEn;
             existente.ActualizadoEn = DateTime.UtcNow;
@@ -142,6 +143,7 @@ namespace Biblioteca.LogicaNegocio
             StockFisico = inventario.StockFisico,
             PermitePrestamo = inventario.PermitePrestamo,
             PermiteDescarga = inventario.PermiteDescarga,
+            Visibilidad = NormalizarVisibilidad(inventario.Visibilidad),
             Estado = inventario.Estado,
             CreadoEn = inventario.CreadoEn,
             ActualizadoEn = inventario.ActualizadoEn
@@ -167,9 +169,20 @@ namespace Biblioteca.LogicaNegocio
             StockFisico = inventario.StockFisico,
             PermitePrestamo = inventario.PermitePrestamo,
             PermiteDescarga = inventario.PermiteDescarga,
+            Visibilidad = NormalizarVisibilidad(inventario.Visibilidad),
             Estado = inventario.Estado,
             CreadoEn = inventario.CreadoEn,
             ActualizadoEn = inventario.ActualizadoEn
         };
+
+        private static string NormalizarVisibilidad(string? visibilidad)
+        {
+            return (visibilidad ?? string.Empty).Trim().ToLowerInvariant() switch
+            {
+                "estudiantes" => "estudiantes",
+                "personal" => "personal",
+                _ => "todos"
+            };
+        }
     }
 }
