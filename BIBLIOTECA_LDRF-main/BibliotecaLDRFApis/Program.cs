@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.FileProviders;
+using Npgsql;
 using System.Text;
 using TiendaBatarazo.AccesoDatos.Context;
 using TiendaBatarazo.AccesoDatos.Implementaciones;
@@ -25,8 +26,15 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartBodyLengthLimit = 200 * 1024 * 1024;
 });
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+    ?? throw new InvalidOperationException("No se configuro la cadena de conexion DefaultConnection.");
+var npgsqlConnection = new NpgsqlConnectionStringBuilder(connectionString)
+{
+    GssEncryptionMode = GssEncryptionMode.Disable
+};
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(npgsqlConnection.ConnectionString));
 builder.Services.AddScoped<DbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
 builder.Services.AddScoped<IUnidadTrabajoEF, UnidadTrabajoEF>();
