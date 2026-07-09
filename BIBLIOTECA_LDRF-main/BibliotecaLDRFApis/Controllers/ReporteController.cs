@@ -28,7 +28,7 @@ namespace BibliotecaLDRFApis.Controllers
             var fechaInicio = new DateTime(anio, mes, 1);
             var fechaFin = fechaInicio.AddMonths(1);
 
-            var masSolicitados = await _context.Prestamos
+            var masSolicitadosRaw = await _context.Prestamos
                 .AsNoTracking()
                 .Where(prestamo => prestamo.FechaPrestamo >= fechaInicio && prestamo.FechaPrestamo < fechaFin)
                 .Join(
@@ -43,18 +43,29 @@ namespace BibliotecaLDRFApis.Controllers
                     producto.TipoObjeto,
                     producto.CodigoInterno
                 })
-                .Select(grupo => new RecursoSolicitadoReporte(
+                .Select(grupo => new
+                {
                     grupo.Key.IdProducto,
                     grupo.Key.Nombre,
                     grupo.Key.TipoObjeto,
                     grupo.Key.CodigoInterno,
-                    grupo.Count()))
+                    TotalSolicitudes = grupo.Count()
+                })
                 .OrderByDescending(item => item.TotalSolicitudes)
                 .ThenBy(item => item.Nombre)
                 .Take(10)
                 .ToListAsync();
 
-            var lectores = await _context.Prestamos
+            var masSolicitados = masSolicitadosRaw
+                .Select(item => new RecursoSolicitadoReporte(
+                    item.IdProducto,
+                    item.Nombre,
+                    item.TipoObjeto,
+                    item.CodigoInterno,
+                    item.TotalSolicitudes))
+                .ToList();
+
+            var lectoresRaw = await _context.Prestamos
                 .AsNoTracking()
                 .Where(prestamo => prestamo.FechaPrestamo >= fechaInicio && prestamo.FechaPrestamo < fechaFin)
                 .Join(
@@ -75,16 +86,29 @@ namespace BibliotecaLDRFApis.Controllers
                     usuario.Correo,
                     usuario.Seccion
                 })
-                .Select(grupo => new LectorMesReporte(
+                .Select(grupo => new
+                {
                     grupo.Key.IdUsuario,
-                    $"{grupo.Key.Nombres} {grupo.Key.Apellidos}".Trim(),
+                    grupo.Key.Nombres,
+                    grupo.Key.Apellidos,
                     grupo.Key.Correo,
                     grupo.Key.Seccion,
-                    grupo.Count()))
+                    TotalLecturas = grupo.Count()
+                })
                 .OrderByDescending(item => item.TotalLecturas)
-                .ThenBy(item => item.NombreCompleto)
+                .ThenBy(item => item.Apellidos)
+                .ThenBy(item => item.Nombres)
                 .Take(5)
                 .ToListAsync();
+
+            var lectores = lectoresRaw
+                .Select(item => new LectorMesReporte(
+                    item.IdUsuario,
+                    $"{item.Nombres} {item.Apellidos}".Trim(),
+                    item.Correo,
+                    item.Seccion,
+                    item.TotalLecturas))
+                .ToList();
 
             return Ok(new ReporteMensualResponse(
                 anio,
