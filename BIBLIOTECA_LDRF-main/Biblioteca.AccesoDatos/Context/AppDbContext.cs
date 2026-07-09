@@ -327,5 +327,16 @@ public partial class AppDbContext : DbContext
                 .HasConstraintName("fk_correos_sancion")
                 .OnDelete(DeleteBehavior.SetNull);
         });
+
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                {
+                    property.SetColumnType("timestamp without time zone");
+                }
+            }
+        }
     }
 }

@@ -79,6 +79,8 @@ namespace Biblioteca.LogicaNegocio
                 throw new InvalidOperationException("El tipo de movimiento debe ser entrada o salida.");
             }
 
+            registro.RegistradoPor = await NormalizarRegistradorAsync(registro.RegistradoPor);
+
             var ahora = ObtenerAhoraCostaRica();
             var entidad = ToEntidad(registro);
             entidad.FechaHora = entidad.FechaHora == default ? ahora : entidad.FechaHora;
@@ -140,6 +142,17 @@ namespace Biblioteca.LogicaNegocio
         private static DateTime ObtenerAhoraCostaRica()
         {
             return DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-6), DateTimeKind.Unspecified);
+        }
+
+        private async Task<int?> NormalizarRegistradorAsync(int? registradoPor)
+        {
+            if (!registradoPor.HasValue || registradoPor.Value <= 0)
+            {
+                return null;
+            }
+
+            var usuario = await _unidadTrabajo.Usuarios.ObtenerPorIdAsync(registradoPor.Value);
+            return usuario is null ? null : registradoPor;
         }
     }
 }

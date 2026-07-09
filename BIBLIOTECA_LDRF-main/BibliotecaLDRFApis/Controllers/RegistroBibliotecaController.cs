@@ -12,10 +12,14 @@ namespace BibliotecaLDRFApis.Controllers
     public class RegistroBibliotecaController : ControllerBase
     {
         private readonly IRegistroBibliotecaLN _registroBibliotecaLN;
+        private readonly ILogger<RegistroBibliotecaController> _logger;
 
-        public RegistroBibliotecaController(IRegistroBibliotecaLN registroBibliotecaLN)
+        public RegistroBibliotecaController(
+            IRegistroBibliotecaLN registroBibliotecaLN,
+            ILogger<RegistroBibliotecaController> logger)
         {
             _registroBibliotecaLN = registroBibliotecaLN;
+            _logger = logger;
         }
 
         [HttpGet("{id}")]
@@ -54,9 +58,13 @@ namespace BibliotecaLDRFApis.Controllers
             {
                 return BadRequest(new { message = error.Message });
             }
-            catch
+            catch (Exception error)
             {
-                return StatusCode(500, new { message = "No se pudo registrar el movimiento en la biblioteca." });
+                _logger.LogError(error, "No se pudo registrar el movimiento en la biblioteca.");
+                return StatusCode(500, new
+                {
+                    message = $"No se pudo registrar el movimiento en la biblioteca. Detalle: {error.GetBaseException().Message}"
+                });
             }
         }
 
