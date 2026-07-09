@@ -17,15 +17,26 @@ namespace Biblioteca.LogicaNegocio
         public async Task<TRegistroBiblioteca?> ObtenerPorIdAsync(int id)
         {
             var registro = await _unidadTrabajo.RegistrosBiblioteca.ObtenerPorIdAsync(id);
-            return registro is null ? null : ToTipada(registro);
+            if (registro is null)
+            {
+                return null;
+            }
+
+            var tipado = ToTipada(registro);
+            await AgregarUsuariosAsync(new List<TRegistroBiblioteca> { tipado });
+            return tipado;
         }
 
         public async Task<IEnumerable<TRegistroBiblioteca>> ObtenerTodosAsync()
         {
             var registros = await _unidadTrabajo.RegistrosBiblioteca.ObtenerTodosAsync();
-            return registros
+            var tipados = registros
                 .OrderByDescending(item => item.FechaHora)
-                .Select(ToTipada);
+                .Select(ToTipada)
+                .ToList();
+
+            await AgregarUsuariosAsync(tipados);
+            return tipados;
         }
 
         public async Task<IEnumerable<TRegistroBiblioteca>> ObtenerPorFechaAsync(DateOnly fecha)
@@ -35,9 +46,13 @@ namespace Biblioteca.LogicaNegocio
             var registros = await _unidadTrabajo.RegistrosBiblioteca.BuscarAsync(item =>
                 item.FechaHora >= inicio && item.FechaHora <= fin);
 
-            return registros
+            var tipados = registros
                 .OrderByDescending(item => item.FechaHora)
-                .Select(ToTipada);
+                .Select(ToTipada)
+                .ToList();
+
+            await AgregarUsuariosAsync(tipados);
+            return tipados;
         }
 
         public async Task<IEnumerable<TUsuario>> BuscarEstudiantesAsync(string busqueda)
@@ -153,6 +168,38 @@ namespace Biblioteca.LogicaNegocio
 
             var usuario = await _unidadTrabajo.Usuarios.ObtenerPorIdAsync(registradoPor.Value);
             return usuario is null ? null : registradoPor;
+        }
+
+        private async Task AgregarUsuariosAsync(List<TRegistroBiblioteca> registros)
+        {
+            if (registros.Count == 0)
+            {
+                return;
+            }
+
+            var idsUsuarios = registros
+                .Select(registro => registro.IdUsuario)
+                .Concat(registros.Select(registro => registro.RegistradoPor ?? 0))
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            var usuarios = (await _unidadTrabajo.Usuarios.BuscarAsync(usuario => idsUsuarios.Contains(usuario.IdUsuario)))
+                .ToDictionary(usuario => usuario.IdUsuario);
+
+            foreach (var registro in registros)
+            {
+                if (usuarios.TryGetValue(registro.IdUsuario, out var usuario))
+                {
+                    registro.Usuario = ToUsuarioTipado(usuario);
+                }
+
+                if (registro.RegistradoPor.HasValue &&
+                    usuarios.TryGetValue(registro.RegistradoPor.Value, out var registrador))
+                {
+                    registro.UsuarioRegistrador = ToUsuarioTipado(registrador);
+                }
+            }
         }
     }
 }
