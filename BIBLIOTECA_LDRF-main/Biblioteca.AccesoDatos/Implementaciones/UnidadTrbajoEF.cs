@@ -18,6 +18,9 @@ namespace TiendaBatarazo.AccesoDatos.Implementaciones
         private RepositorioAD<Prestamo>? _prestamos;
         private RepositorioAD<Sancion>? _sanciones;
         private RepositorioAD<HorarioSeccion>? _horariosSecciones;
+        private RepositorioAD<RegistroBiblioteca>? _registrosBiblioteca;
+        private RepositorioAD<Noticia>? _noticias;
+        private RepositorioAD<CorreoEnviado>? _correosEnviados;
         #endregion
 
         #region Constructor
@@ -35,6 +38,9 @@ namespace TiendaBatarazo.AccesoDatos.Implementaciones
         public IRepositorioAD<Prestamo> Prestamos => _prestamos ??= new RepositorioAD<Prestamo>(_context);
         public IRepositorioAD<Sancion> Sanciones => _sanciones ??= new RepositorioAD<Sancion>(_context);
         public IRepositorioAD<HorarioSeccion> HorariosSecciones => _horariosSecciones ??= new RepositorioAD<HorarioSeccion>(_context);
+        public IRepositorioAD<RegistroBiblioteca> RegistrosBiblioteca => _registrosBiblioteca ??= new RepositorioAD<RegistroBiblioteca>(_context);
+        public IRepositorioAD<Noticia> Noticias => _noticias ??= new RepositorioAD<Noticia>(_context);
+        public IRepositorioAD<CorreoEnviado> CorreosEnviados => _correosEnviados ??= new RepositorioAD<CorreoEnviado>(_context);
         #endregion
 
         #region Métodos

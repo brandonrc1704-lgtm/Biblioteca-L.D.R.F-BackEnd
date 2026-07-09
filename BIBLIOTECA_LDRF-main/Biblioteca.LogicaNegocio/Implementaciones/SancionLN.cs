@@ -15,10 +15,12 @@ namespace Biblioteca.LogicaNegocio
     public class SancionLN : ISancionLN
     {
         private readonly IUnidadTrabajoEF _unidadTrabajo;
+        private readonly ICorreoService _correoService;
 
-        public SancionLN(IUnidadTrabajoEF unidadTrabajo)
+        public SancionLN(IUnidadTrabajoEF unidadTrabajo, ICorreoService correoService)
         {
             _unidadTrabajo = unidadTrabajo;
+            _correoService = correoService;
         }
 
         public async Task<TSancion?> ObtenerPorIdAsync(int id)
@@ -61,6 +63,9 @@ namespace Biblioteca.LogicaNegocio
 
             await _unidadTrabajo.Sanciones.AgregarAsync(entidad);
             _unidadTrabajo.Completar();
+
+            sancion.IdSancion = entidad.IdSancion;
+            await RegistrarCorreoSancionAsync(entidad);
         }
 
         public async Task ActualizarSancionAsync(TSancion sancion)
@@ -120,5 +125,59 @@ namespace Biblioteca.LogicaNegocio
             CreadoEn = sancion.CreadoEn,
             ActualizadoEn = sancion.ActualizadoEn
         };
+
+        private async Task RegistrarCorreoSancionAsync(Sancion sancion)
+        {
+            var usuario = await _unidadTrabajo.Usuarios.ObtenerPorIdAsync(sancion.IdUsuario);
+            if (usuario is null || string.IsNullOrWhiteSpace(usuario.Correo))
+            {
+                return;
+            }
+
+            var asunto = "Aviso de sancion - Biblioteca C.D.R.F";
+            var mensaje = CrearMensajeSancion(usuario, sancion);
+            var correo = new CorreoEnviado
+            {
+                IdUsuario = usuario.IdUsuario,
+                IdSancion = sancion.IdSancion,
+                CorreoDestino = usuario.Correo,
+                Asunto = asunto,
+                Mensaje = mensaje,
+                Estado = "pendiente",
+                CreadoEn = DateTime.UtcNow
+            };
+
+            try
+            {
+                await _correoService.EnviarAsync(usuario.Correo, asunto, mensaje);
+                correo.Estado = "enviado";
+                correo.EnviadoEn = DateTime.UtcNow;
+            }
+            catch (Exception error)
+            {
+                correo.Estado = "fallido";
+                correo.ErrorEnvio = error.Message;
+            }
+
+            await _unidadTrabajo.CorreosEnviados.AgregarAsync(correo);
+            _unidadTrabajo.Completar();
+        }
+
+        private static string CrearMensajeSancion(Usuario usuario, Sancion sancion)
+        {
+            return $"""
+            Hola {usuario.Nombres} {usuario.Apellidos}.
+
+            Se registro una sancion en la biblioteca.
+
+            Motivo: {sancion.Motivo}
+            Fecha de inicio: {sancion.FechaInicio:yyyy-MM-dd}
+            Fecha de fin: {sancion.FechaFin:yyyy-MM-dd}
+
+            Debe presentarse a la biblioteca para resolver la situacion y solicitar que administracion levante la sancion cuando corresponda.
+
+            Biblioteca C.D.R.F
+            """;
+        }
     }
 }

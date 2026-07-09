@@ -20,6 +20,9 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Prestamo> Prestamos { get; set; }
     public virtual DbSet<Sancion> Sanciones { get; set; }
     public virtual DbSet<HorarioSeccion> HorariosSecciones { get; set; }
+    public virtual DbSet<RegistroBiblioteca> RegistrosBiblioteca { get; set; }
+    public virtual DbSet<Noticia> Noticias { get; set; }
+    public virtual DbSet<CorreoEnviado> CorreosEnviados { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -228,6 +231,101 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Observaciones).HasColumnName("observaciones");
             entity.Property(e => e.CreadoEn).HasColumnName("creado_en").HasDefaultValueSql("NOW()");
             entity.Property(e => e.ActualizadoEn).HasColumnName("actualizado_en").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<RegistroBiblioteca>(entity =>
+        {
+            entity.ToTable("registros_biblioteca", table =>
+            {
+                table.HasCheckConstraint("chk_registros_tipo_movimiento", "tipo_movimiento IN ('entrada', 'salida')");
+            });
+
+            entity.HasKey(e => e.IdRegistro).HasName("registros_biblioteca_pkey");
+            entity.Property(e => e.IdRegistro).HasColumnName("id_registro").ValueGeneratedOnAdd();
+            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+            entity.Property(e => e.TipoMovimiento).HasColumnName("tipo_movimiento").HasMaxLength(20).HasDefaultValue("entrada");
+            entity.Property(e => e.FechaHora).HasColumnName("fecha_hora").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.RegistradoPor).HasColumnName("registrado_por");
+            entity.Property(e => e.Observaciones).HasColumnName("observaciones");
+            entity.Property(e => e.CreadoEn).HasColumnName("creado_en").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.IdUsuario).HasDatabaseName("idx_registros_biblioteca_usuario");
+            entity.HasIndex(e => e.FechaHora).HasDatabaseName("idx_registros_biblioteca_fecha");
+
+            entity.HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.IdUsuario)
+                .HasConstraintName("fk_registros_usuario")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.UsuarioRegistrador)
+                .WithMany()
+                .HasForeignKey(e => e.RegistradoPor)
+                .HasConstraintName("fk_registros_registrado_por")
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Noticia>(entity =>
+        {
+            entity.ToTable("noticias", table =>
+            {
+                table.HasCheckConstraint("chk_noticias_tipo", "tipo IN ('general', 'actividad', 'aviso', 'urgente')");
+                table.HasCheckConstraint("chk_noticias_estado", "estado IN ('publicada', 'oculta')");
+            });
+
+            entity.HasKey(e => e.IdNoticia).HasName("noticias_pkey");
+            entity.Property(e => e.IdNoticia).HasColumnName("id_noticia").ValueGeneratedOnAdd();
+            entity.Property(e => e.Titulo).HasColumnName("titulo").HasMaxLength(150).IsRequired();
+            entity.Property(e => e.Mensaje).HasColumnName("mensaje").IsRequired();
+            entity.Property(e => e.Tipo).HasColumnName("tipo").HasMaxLength(30).HasDefaultValue("general");
+            entity.Property(e => e.Estado).HasColumnName("estado").HasMaxLength(20).HasDefaultValue("publicada");
+            entity.Property(e => e.CreadoPor).HasColumnName("creado_por");
+            entity.Property(e => e.CreadoEn).HasColumnName("creado_en").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.ActualizadoEn).HasColumnName("actualizado_en").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.Estado).HasDatabaseName("idx_noticias_estado");
+            entity.HasIndex(e => e.CreadoEn).HasDatabaseName("idx_noticias_creado_en");
+
+            entity.HasOne(e => e.UsuarioCreador)
+                .WithMany()
+                .HasForeignKey(e => e.CreadoPor)
+                .HasConstraintName("fk_noticias_creado_por")
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<CorreoEnviado>(entity =>
+        {
+            entity.ToTable("correos_enviados", table =>
+            {
+                table.HasCheckConstraint("chk_correos_estado", "estado IN ('pendiente', 'enviado', 'fallido')");
+            });
+
+            entity.HasKey(e => e.IdCorreo).HasName("correos_enviados_pkey");
+            entity.Property(e => e.IdCorreo).HasColumnName("id_correo").ValueGeneratedOnAdd();
+            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+            entity.Property(e => e.IdSancion).HasColumnName("id_sancion");
+            entity.Property(e => e.CorreoDestino).HasColumnName("correo_destino").HasMaxLength(150).IsRequired();
+            entity.Property(e => e.Asunto).HasColumnName("asunto").HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Mensaje).HasColumnName("mensaje").IsRequired();
+            entity.Property(e => e.Estado).HasColumnName("estado").HasMaxLength(20).HasDefaultValue("pendiente");
+            entity.Property(e => e.ErrorEnvio).HasColumnName("error_envio");
+            entity.Property(e => e.EnviadoEn).HasColumnName("enviado_en");
+            entity.Property(e => e.CreadoEn).HasColumnName("creado_en").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.IdUsuario).HasDatabaseName("idx_correos_usuario");
+            entity.HasIndex(e => e.IdSancion).HasDatabaseName("idx_correos_sancion");
+
+            entity.HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.IdUsuario)
+                .HasConstraintName("fk_correos_usuario")
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Sancion)
+                .WithMany()
+                .HasForeignKey(e => e.IdSancion)
+                .HasConstraintName("fk_correos_sancion")
+                .OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

@@ -10,6 +10,9 @@ namespace Biblioteca.Dominio.InterfacesAD
         IRepositorioAD<Prestamo> Prestamos { get; }
         IRepositorioAD<Sancion> Sanciones { get; }
         IRepositorioAD<HorarioSeccion> HorariosSecciones { get; }
+        IRepositorioAD<RegistroBiblioteca> RegistrosBiblioteca { get; }
+        IRepositorioAD<Noticia> Noticias { get; }
+        IRepositorioAD<CorreoEnviado> CorreosEnviados { get; }
 
         int Completar();
         void EmpezarTransaccion();

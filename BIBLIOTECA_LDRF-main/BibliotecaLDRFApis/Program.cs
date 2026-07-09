@@ -36,6 +36,9 @@ builder.Services.AddScoped<IDescargaLN, DescargaLN>();
 builder.Services.AddScoped<IPrestamoLN, PrestamoLN>();
 builder.Services.AddScoped<ISancionLN, SancionLN>();
 builder.Services.AddScoped<IHorarioSeccionLN, HorarioSeccionLN>();
+builder.Services.AddScoped<IRegistroBibliotecaLN, RegistroBibliotecaLN>();
+builder.Services.AddScoped<INoticiaLN, NoticiaLN>();
+builder.Services.AddScoped<ICorreoService, SmtpCorreoService>();
 builder.Services.AddScoped<IR2StorageService, R2StorageService>();
 
 builder.Services.AddCors(options =>
