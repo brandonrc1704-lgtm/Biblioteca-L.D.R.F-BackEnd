@@ -54,6 +54,10 @@ namespace BibliotecaLDRFApis.Controllers
             {
                 return BadRequest(new { message = error.Message });
             }
+            catch
+            {
+                return StatusCode(500, new { message = "No se pudo registrar el movimiento en la biblioteca." });
+            }
         }
 
         [HttpDelete("{id}")]

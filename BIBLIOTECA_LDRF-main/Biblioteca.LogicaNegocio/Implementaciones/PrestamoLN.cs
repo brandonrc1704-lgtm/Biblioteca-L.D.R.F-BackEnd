@@ -267,15 +267,7 @@ namespace Biblioteca.LogicaNegocio
 
         private static DateTime ObtenerFechaHoraCostaRica()
         {
-            try
-            {
-                var zona = TimeZoneInfo.FindSystemTimeZoneById("America/Costa_Rica");
-                return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zona);
-            }
-            catch (TimeZoneNotFoundException)
-            {
-                return DateTime.Now;
-            }
+            return DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-6), DateTimeKind.Unspecified);
         }
 
         private static string AgregarObservacionEquipo(string? observaciones)
