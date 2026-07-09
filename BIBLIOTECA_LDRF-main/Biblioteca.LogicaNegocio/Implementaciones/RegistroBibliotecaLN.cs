@@ -79,9 +79,10 @@ namespace Biblioteca.LogicaNegocio
                 throw new InvalidOperationException("El tipo de movimiento debe ser entrada o salida.");
             }
 
+            var ahora = ObtenerAhoraCostaRica();
             var entidad = ToEntidad(registro);
-            entidad.FechaHora = entidad.FechaHora == default ? DateTime.UtcNow : entidad.FechaHora;
-            entidad.CreadoEn = entidad.CreadoEn == default ? DateTime.UtcNow : entidad.CreadoEn;
+            entidad.FechaHora = entidad.FechaHora == default ? ahora : entidad.FechaHora;
+            entidad.CreadoEn = entidad.CreadoEn == default ? ahora : entidad.CreadoEn;
 
             await _unidadTrabajo.RegistrosBiblioteca.AgregarAsync(entidad);
             _unidadTrabajo.Completar();
@@ -135,5 +136,11 @@ namespace Biblioteca.LogicaNegocio
             CreadoEn = usuario.CreadoEn,
             ActualizadoEn = usuario.ActualizadoEn
         };
+
+        private static DateTime ObtenerAhoraCostaRica()
+        {
+            var zona = TimeZoneInfo.FindSystemTimeZoneById("America/Costa_Rica");
+            return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, zona);
+        }
     }
 }
