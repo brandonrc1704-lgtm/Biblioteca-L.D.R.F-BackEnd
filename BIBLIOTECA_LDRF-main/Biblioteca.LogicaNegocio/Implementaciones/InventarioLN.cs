@@ -35,8 +35,11 @@ namespace Biblioteca.LogicaNegocio
 
         public async Task CrearInventarioAsync(TInventario inventario)
         {
+            ValidarInventario(inventario);
+            await ValidarCodigoInternoDisponibleAsync(inventario.CodigoInterno, null);
+
             var entidad = ToEntidad(inventario);
-            var ahora = DateTime.UtcNow;
+            var ahora = ObtenerFechaHoraCostaRica();
 
             if (entidad.CreadoEn == default)
             {
@@ -50,6 +53,10 @@ namespace Biblioteca.LogicaNegocio
 
             await _unidadTrabajo.Inventario.AgregarAsync(entidad);
             _unidadTrabajo.Completar();
+
+            inventario.IdProducto = entidad.IdProducto;
+            inventario.CreadoEn = entidad.CreadoEn;
+            inventario.ActualizadoEn = entidad.ActualizadoEn;
         }
 
         public async Task ActualizarInventarioAsync(TInventario inventario)
@@ -59,6 +66,9 @@ namespace Biblioteca.LogicaNegocio
             {
                 throw new InvalidOperationException("El recurso no existe en inventario.");
             }
+
+            ValidarInventario(inventario);
+            await ValidarCodigoInternoDisponibleAsync(inventario.CodigoInterno, inventario.IdProducto);
 
             existente.CodigoInterno = inventario.CodigoInterno;
             existente.TipoObjeto = inventario.TipoObjeto;
@@ -79,8 +89,10 @@ namespace Biblioteca.LogicaNegocio
             existente.PermiteDescarga = inventario.PermiteDescarga;
             existente.Visibilidad = NormalizarVisibilidad(inventario.Visibilidad);
             existente.Estado = inventario.Estado;
-            existente.CreadoEn = existente.CreadoEn == default ? DateTime.UtcNow : existente.CreadoEn;
-            existente.ActualizadoEn = DateTime.UtcNow;
+            existente.CreadoEn = existente.CreadoEn == default
+                ? ObtenerFechaHoraCostaRica()
+                : NormalizarTimestamp(existente.CreadoEn);
+            existente.ActualizadoEn = ObtenerFechaHoraCostaRica();
 
             _unidadTrabajo.Completar();
         }
@@ -171,8 +183,8 @@ namespace Biblioteca.LogicaNegocio
             PermiteDescarga = inventario.PermiteDescarga,
             Visibilidad = NormalizarVisibilidad(inventario.Visibilidad),
             Estado = inventario.Estado,
-            CreadoEn = inventario.CreadoEn,
-            ActualizadoEn = inventario.ActualizadoEn
+            CreadoEn = NormalizarTimestamp(inventario.CreadoEn),
+            ActualizadoEn = NormalizarTimestamp(inventario.ActualizadoEn)
         };
 
         private static string NormalizarVisibilidad(string? visibilidad)
@@ -183,6 +195,65 @@ namespace Biblioteca.LogicaNegocio
                 "personal" => "personal",
                 _ => "todos"
             };
+        }
+
+        private async Task ValidarCodigoInternoDisponibleAsync(string? codigoInterno, int? idActual)
+        {
+            var codigo = (codigoInterno ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(codigo))
+            {
+                return;
+            }
+
+            var codigoNormalizado = codigo.ToLowerInvariant();
+            var existentes = await _unidadTrabajo.Inventario.BuscarAsync(item =>
+                item.CodigoInterno != null &&
+                item.CodigoInterno.ToLower() == codigoNormalizado &&
+                (!idActual.HasValue || item.IdProducto != idActual.Value));
+
+            if (existentes.Any())
+            {
+                throw new InvalidOperationException($"Ya existe un recurso con el codigo interno \"{codigo}\".");
+            }
+        }
+
+        private static void ValidarInventario(TInventario inventario)
+        {
+            if (string.IsNullOrWhiteSpace(inventario.Nombre))
+            {
+                throw new InvalidOperationException("El nombre del recurso es obligatorio.");
+            }
+
+            if (!new[] { "libro_fisico", "libro_digital", "equipo_institucion" }.Contains(inventario.TipoObjeto))
+            {
+                throw new InvalidOperationException("El tipo de objeto no es valido.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(inventario.TipoArchivo) &&
+                !new[] { "pdf", "epub" }.Contains(inventario.TipoArchivo))
+            {
+                throw new InvalidOperationException("El tipo de archivo no es valido.");
+            }
+
+            if (!new[] { "disponible", "prestado", "danado", "baja" }.Contains(inventario.Estado))
+            {
+                throw new InvalidOperationException("El estado del recurso no es valido.");
+            }
+
+            if (inventario.StockFisico < 0)
+            {
+                throw new InvalidOperationException("El stock fisico no puede ser negativo.");
+            }
+        }
+
+        private static DateTime ObtenerFechaHoraCostaRica()
+        {
+            return DateTime.SpecifyKind(DateTime.UtcNow.AddHours(-6), DateTimeKind.Unspecified);
+        }
+
+        private static DateTime NormalizarTimestamp(DateTime fecha)
+        {
+            return fecha == default ? fecha : DateTime.SpecifyKind(fecha, DateTimeKind.Unspecified);
         }
     }
 }

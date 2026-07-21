@@ -1,10 +1,19 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Biblioteca.Dominio.Entidades;
 
 namespace TiendaBatarazo.AccesoDatos.Context;
 
 public partial class AppDbContext : DbContext
 {
+    private static readonly ValueConverter<DateTime, DateTime> TimestampWithoutTimeZoneConverter = new(
+        fecha => NormalizarTimestamp(fecha),
+        fecha => NormalizarTimestamp(fecha));
+
+    private static readonly ValueConverter<DateTime?, DateTime?> NullableTimestampWithoutTimeZoneConverter = new(
+        fecha => fecha.HasValue ? NormalizarTimestamp(fecha.Value) : null,
+        fecha => fecha.HasValue ? NormalizarTimestamp(fecha.Value) : null);
+
     public AppDbContext()
     {
     }
@@ -87,8 +96,8 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Edicion).HasColumnName("edicion").HasMaxLength(255);
             entity.Property(e => e.Categoria).HasColumnName("categoria").HasMaxLength(100);
             entity.Property(e => e.Ubicacion).HasColumnName("ubicacion").HasMaxLength(100);
-            entity.Property(e => e.Portada).HasColumnName("portada").HasMaxLength(255);
-            entity.Property(e => e.ArchivoUrl).HasColumnName("archivo_url").HasMaxLength(500);
+            entity.Property(e => e.Portada).HasColumnName("portada").HasMaxLength(1000);
+            entity.Property(e => e.ArchivoUrl).HasColumnName("archivo_url").HasMaxLength(1000);
             entity.Property(e => e.TipoArchivo).HasColumnName("tipo_archivo").HasMaxLength(10);
             entity.Property(e => e.TamanoMb).HasColumnName("tamano_mb").HasPrecision(5, 2);
             entity.Property(e => e.StockFisico).HasColumnName("stock_fisico").HasDefaultValue(0);
@@ -335,8 +344,22 @@ public partial class AppDbContext : DbContext
                 if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
                 {
                     property.SetColumnType("timestamp without time zone");
+
+                    if (property.ClrType == typeof(DateTime))
+                    {
+                        property.SetValueConverter(TimestampWithoutTimeZoneConverter);
+                    }
+                    else
+                    {
+                        property.SetValueConverter(NullableTimestampWithoutTimeZoneConverter);
+                    }
                 }
             }
         }
+    }
+
+    private static DateTime NormalizarTimestamp(DateTime fecha)
+    {
+        return fecha == default ? fecha : DateTime.SpecifyKind(fecha, DateTimeKind.Unspecified);
     }
 }
