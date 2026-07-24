@@ -19,6 +19,7 @@ namespace TiendaBatarazo.AccesoDatos.Implementaciones
         private RepositorioAD<Sancion>? _sanciones;
         private RepositorioAD<HorarioSeccion>? _horariosSecciones;
         private RepositorioAD<RegistroBiblioteca>? _registrosBiblioteca;
+        private RepositorioAD<RegistroSeccionBiblioteca>? _registrosSeccionesBiblioteca;
         private RepositorioAD<Noticia>? _noticias;
         private RepositorioAD<CorreoEnviado>? _correosEnviados;
         #endregion
@@ -39,6 +40,7 @@ namespace TiendaBatarazo.AccesoDatos.Implementaciones
         public IRepositorioAD<Sancion> Sanciones => _sanciones ??= new RepositorioAD<Sancion>(_context);
         public IRepositorioAD<HorarioSeccion> HorariosSecciones => _horariosSecciones ??= new RepositorioAD<HorarioSeccion>(_context);
         public IRepositorioAD<RegistroBiblioteca> RegistrosBiblioteca => _registrosBiblioteca ??= new RepositorioAD<RegistroBiblioteca>(_context);
+        public IRepositorioAD<RegistroSeccionBiblioteca> RegistrosSeccionesBiblioteca => _registrosSeccionesBiblioteca ??= new RepositorioAD<RegistroSeccionBiblioteca>(_context);
         public IRepositorioAD<Noticia> Noticias => _noticias ??= new RepositorioAD<Noticia>(_context);
         public IRepositorioAD<CorreoEnviado> CorreosEnviados => _correosEnviados ??= new RepositorioAD<CorreoEnviado>(_context);
         #endregion

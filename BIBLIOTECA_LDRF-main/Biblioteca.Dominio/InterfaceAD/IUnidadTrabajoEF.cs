@@ -11,6 +11,7 @@ namespace Biblioteca.Dominio.InterfacesAD
         IRepositorioAD<Sancion> Sanciones { get; }
         IRepositorioAD<HorarioSeccion> HorariosSecciones { get; }
         IRepositorioAD<RegistroBiblioteca> RegistrosBiblioteca { get; }
+        IRepositorioAD<RegistroSeccionBiblioteca> RegistrosSeccionesBiblioteca { get; }
         IRepositorioAD<Noticia> Noticias { get; }
         IRepositorioAD<CorreoEnviado> CorreosEnviados { get; }
 

@@ -30,6 +30,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Sancion> Sanciones { get; set; }
     public virtual DbSet<HorarioSeccion> HorariosSecciones { get; set; }
     public virtual DbSet<RegistroBiblioteca> RegistrosBiblioteca { get; set; }
+    public virtual DbSet<RegistroSeccionBiblioteca> RegistrosSeccionesBiblioteca { get; set; }
     public virtual DbSet<Noticia> Noticias { get; set; }
     public virtual DbSet<CorreoEnviado> CorreosEnviados { get; set; }
 
@@ -271,6 +272,32 @@ public partial class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.RegistradoPor)
                 .HasConstraintName("fk_registros_registrado_por")
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<RegistroSeccionBiblioteca>(entity =>
+        {
+            entity.ToTable("registros_secciones_biblioteca");
+
+            entity.HasKey(e => e.IdRegistroSeccion).HasName("registros_secciones_biblioteca_pkey");
+            entity.Property(e => e.IdRegistroSeccion).HasColumnName("id_registro_seccion").ValueGeneratedOnAdd();
+            entity.Property(e => e.Grado).HasColumnName("grado").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Seccion).HasColumnName("seccion").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.FechaUso).HasColumnName("fecha_uso").HasDefaultValueSql("CURRENT_DATE");
+            entity.Property(e => e.UsoBiblioteca).HasColumnName("uso_biblioteca").HasMaxLength(255).IsRequired();
+            entity.Property(e => e.ReservadoPor).HasColumnName("reservado_por").HasMaxLength(150).IsRequired();
+            entity.Property(e => e.RegistradoPor).HasColumnName("registrado_por");
+            entity.Property(e => e.Observaciones).HasColumnName("observaciones");
+            entity.Property(e => e.CreadoEn).HasColumnName("creado_en").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.ActualizadoEn).HasColumnName("actualizado_en").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.FechaUso).HasDatabaseName("idx_registros_secciones_fecha");
+            entity.HasIndex(e => new { e.Grado, e.Seccion }).HasDatabaseName("idx_registros_secciones_seccion");
+
+            entity.HasOne(e => e.UsuarioRegistrador)
+                .WithMany()
+                .HasForeignKey(e => e.RegistradoPor)
+                .HasConstraintName("fk_registros_secciones_registrado_por")
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
