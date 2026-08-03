@@ -37,6 +37,23 @@ namespace Biblioteca.LogicaNegocio
         {
             var entidad = ToEntidad(usuario);
             var ahora = DateTime.UtcNow;
+            var correoNormalizado = entidad.Correo.Trim().ToLowerInvariant();
+            var credencialNormalizada = entidad.Credencial.Trim();
+            var cedulaNormalizada = entidad.Cedula.Trim();
+
+            var usuarioDuplicado = (await _unidadTrabajo.Usuarios.BuscarAsync(usuarioExistente =>
+                usuarioExistente.Correo.ToLower() == correoNormalizado ||
+                usuarioExistente.Credencial == credencialNormalizada ||
+                usuarioExistente.Cedula == cedulaNormalizada)).FirstOrDefault();
+
+            if (usuarioDuplicado is not null)
+            {
+                throw new InvalidOperationException("Ya existe una cuenta con ese correo, cedula o credencial.");
+            }
+
+            entidad.Correo = correoNormalizado;
+            entidad.Credencial = credencialNormalizada;
+            entidad.Cedula = cedulaNormalizada;
 
             if (entidad.CreadoEn == default)
             {
@@ -52,6 +69,13 @@ namespace Biblioteca.LogicaNegocio
 
             await _unidadTrabajo.Usuarios.AgregarAsync(entidad);
             _unidadTrabajo.Completar();
+
+            usuario.IdUsuario = entidad.IdUsuario;
+            usuario.Credencial = entidad.Credencial;
+            usuario.Cedula = entidad.Cedula;
+            usuario.Correo = entidad.Correo;
+            usuario.CreadoEn = entidad.CreadoEn;
+            usuario.ActualizadoEn = entidad.ActualizadoEn;
         }
 
         public async Task ActualizarUsuarioAsync(TUsuario usuario)
