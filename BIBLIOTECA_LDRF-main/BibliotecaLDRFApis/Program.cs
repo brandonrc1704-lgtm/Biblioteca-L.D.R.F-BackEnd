@@ -12,6 +12,34 @@ using System.Text;
 using TiendaBatarazo.AccesoDatos.Context;
 using TiendaBatarazo.AccesoDatos.Implementaciones;
 
+static string NormalizarOrigen(string origen) => origen.Trim().TrimEnd('/');
+
+static bool EsOrigenPermitido(string? origen, IReadOnlySet<string> origenesPermitidos)
+{
+    if (string.IsNullOrWhiteSpace(origen))
+    {
+        return false;
+    }
+
+    var origenNormalizado = NormalizarOrigen(origen);
+    if (origenesPermitidos.Contains(origenNormalizado))
+    {
+        return true;
+    }
+
+    if (!Uri.TryCreate(origenNormalizado, UriKind.Absolute, out var uri))
+    {
+        return false;
+    }
+
+    if (uri.Host.Equals("biblioteca-l-d-r-f-frontend.pages.dev", StringComparison.OrdinalIgnoreCase))
+    {
+        return true;
+    }
+
+    return uri.Host.EndsWith(".biblioteca-l-d-r-f-frontend.pages.dev", StringComparison.OrdinalIgnoreCase);
+}
+
 var builder = WebApplication.CreateBuilder(args);
 var port = Environment.GetEnvironmentVariable("PORT");
 if (!string.IsNullOrWhiteSpace(port))
@@ -54,10 +82,19 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendOnly", policy =>
     {
-        var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
-            ?? ["http://localhost:4200", "http://localhost:8100", "https://localhost:4200"];
+        var allowedOrigins = (builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+            ?? [])
+            .Concat([
+                "http://localhost:4200",
+                "http://localhost:8100",
+                "https://localhost:4200",
+                "https://biblioteca-l-d-r-f-frontend.pages.dev"
+            ])
+            .Where(origen => !string.IsNullOrWhiteSpace(origen))
+            .Select(NormalizarOrigen)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-        policy.WithOrigins(allowedOrigins)
+        policy.SetIsOriginAllowed(origen => EsOrigenPermitido(origen, allowedOrigins))
             .AllowAnyMethod()
             .AllowAnyHeader();
     });

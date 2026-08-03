@@ -41,6 +41,16 @@ namespace Biblioteca.LogicaNegocio
             var hoy = DateOnly.FromDateTime(DateTime.Now);
             var ahora = DateTime.UtcNow;
 
+            if (entidad.IdUsuario <= 0)
+            {
+                throw new InvalidOperationException("Debe seleccionar un usuario para registrar la sancion.");
+            }
+
+            if (entidad.DiasSancion <= 0)
+            {
+                entidad.DiasSancion = 1;
+            }
+
             if (entidad.FechaInicio == default)
             {
                 entidad.FechaInicio = hoy;
@@ -48,7 +58,7 @@ namespace Biblioteca.LogicaNegocio
 
             if (entidad.FechaFin == default)
             {
-                entidad.FechaFin = hoy.AddDays(entidad.DiasSancion);
+                entidad.FechaFin = entidad.FechaInicio.AddDays(entidad.DiasSancion);
             }
 
             if (entidad.CreadoEn == default)
@@ -65,6 +75,10 @@ namespace Biblioteca.LogicaNegocio
             _unidadTrabajo.Completar();
 
             sancion.IdSancion = entidad.IdSancion;
+            sancion.FechaInicio = entidad.FechaInicio;
+            sancion.FechaFin = entidad.FechaFin;
+            sancion.DiasSancion = entidad.DiasSancion;
+            sancion.IdPrestamo = entidad.IdPrestamo;
             await RegistrarCorreoSancionAsync(entidad);
         }
 

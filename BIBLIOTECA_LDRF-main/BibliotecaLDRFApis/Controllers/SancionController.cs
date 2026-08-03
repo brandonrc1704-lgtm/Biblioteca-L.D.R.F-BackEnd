@@ -11,10 +11,12 @@ namespace BibliotecaLDRFApis.Controllers
     public class SancionController : ControllerBase
     {
         private readonly ISancionLN _sancionLN;
+        private readonly ILogger<SancionController> _logger;
 
-        public SancionController(ISancionLN sancionLN)
+        public SancionController(ISancionLN sancionLN, ILogger<SancionController> logger)
         {
             _sancionLN = sancionLN;
+            _logger = logger;
         }
 
         [HttpGet("{id}")]
@@ -33,8 +35,20 @@ namespace BibliotecaLDRFApis.Controllers
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] TSancion sancion)
         {
-            await _sancionLN.CrearSancionAsync(sancion);
-            return CreatedAtAction(nameof(GetById), new { id = sancion.IdSancion }, sancion);
+            try
+            {
+                await _sancionLN.CrearSancionAsync(sancion);
+                return CreatedAtAction(nameof(GetById), new { id = sancion.IdSancion }, sancion);
+            }
+            catch (InvalidOperationException error)
+            {
+                return BadRequest(new { message = error.Message });
+            }
+            catch (Exception error)
+            {
+                _logger.LogError(error, "No se pudo registrar la sancion.");
+                return StatusCode(500, new { message = $"No se pudo registrar la sancion. Detalle: {error.GetBaseException().Message}" });
+            }
         }
 
         [HttpPut("{id}")]
@@ -42,8 +56,20 @@ namespace BibliotecaLDRFApis.Controllers
         {
             if (id != sancion.IdSancion) return BadRequest();
 
-            await _sancionLN.ActualizarSancionAsync(sancion);
-            return NoContent();
+            try
+            {
+                await _sancionLN.ActualizarSancionAsync(sancion);
+                return NoContent();
+            }
+            catch (InvalidOperationException error)
+            {
+                return BadRequest(new { message = error.Message });
+            }
+            catch (Exception error)
+            {
+                _logger.LogError(error, "No se pudo actualizar la sancion.");
+                return StatusCode(500, new { message = $"No se pudo actualizar la sancion. Detalle: {error.GetBaseException().Message}" });
+            }
         }
 
         [HttpDelete("{id}")]
