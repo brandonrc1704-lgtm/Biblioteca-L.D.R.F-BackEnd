@@ -71,6 +71,7 @@ builder.Services.AddScoped<IInventarioLN, InventarioLN>();
 builder.Services.AddScoped<IDescargaLN, DescargaLN>();
 builder.Services.AddScoped<IPrestamoLN, PrestamoLN>();
 builder.Services.AddScoped<ISancionLN, SancionLN>();
+builder.Services.AddScoped<ISancionEscapadoLN, SancionEscapadoLN>();
 builder.Services.AddScoped<IHorarioSeccionLN, HorarioSeccionLN>();
 builder.Services.AddScoped<IRegistroBibliotecaLN, RegistroBibliotecaLN>();
 builder.Services.AddScoped<IRegistroSeccionBibliotecaLN, RegistroSeccionBibliotecaLN>();

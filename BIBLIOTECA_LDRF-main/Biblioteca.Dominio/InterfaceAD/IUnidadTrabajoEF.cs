@@ -9,6 +9,7 @@ namespace Biblioteca.Dominio.InterfacesAD
         IRepositorioAD<Descarga> Descargas { get; }
         IRepositorioAD<Prestamo> Prestamos { get; }
         IRepositorioAD<Sancion> Sanciones { get; }
+        IRepositorioAD<SancionEscapado> SancionesEscapado { get; }
         IRepositorioAD<HorarioSeccion> HorariosSecciones { get; }
         IRepositorioAD<RegistroBiblioteca> RegistrosBiblioteca { get; }
         IRepositorioAD<RegistroSeccionBiblioteca> RegistrosSeccionesBiblioteca { get; }

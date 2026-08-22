@@ -17,6 +17,7 @@ namespace TiendaBatarazo.AccesoDatos.Implementaciones
         private RepositorioAD<Descarga>? _descargas;
         private RepositorioAD<Prestamo>? _prestamos;
         private RepositorioAD<Sancion>? _sanciones;
+        private RepositorioAD<SancionEscapado>? _sancionesEscapado;
         private RepositorioAD<HorarioSeccion>? _horariosSecciones;
         private RepositorioAD<RegistroBiblioteca>? _registrosBiblioteca;
         private RepositorioAD<RegistroSeccionBiblioteca>? _registrosSeccionesBiblioteca;
@@ -38,6 +39,7 @@ namespace TiendaBatarazo.AccesoDatos.Implementaciones
         public IRepositorioAD<Descarga> Descargas => _descargas ??= new RepositorioAD<Descarga>(_context);
         public IRepositorioAD<Prestamo> Prestamos => _prestamos ??= new RepositorioAD<Prestamo>(_context);
         public IRepositorioAD<Sancion> Sanciones => _sanciones ??= new RepositorioAD<Sancion>(_context);
+        public IRepositorioAD<SancionEscapado> SancionesEscapado => _sancionesEscapado ??= new RepositorioAD<SancionEscapado>(_context);
         public IRepositorioAD<HorarioSeccion> HorariosSecciones => _horariosSecciones ??= new RepositorioAD<HorarioSeccion>(_context);
         public IRepositorioAD<RegistroBiblioteca> RegistrosBiblioteca => _registrosBiblioteca ??= new RepositorioAD<RegistroBiblioteca>(_context);
         public IRepositorioAD<RegistroSeccionBiblioteca> RegistrosSeccionesBiblioteca => _registrosSeccionesBiblioteca ??= new RepositorioAD<RegistroSeccionBiblioteca>(_context);

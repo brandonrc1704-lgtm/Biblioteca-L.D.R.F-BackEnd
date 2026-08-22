@@ -28,6 +28,7 @@ public partial class AppDbContext : DbContext
     public virtual DbSet<Descarga> Descargas { get; set; }
     public virtual DbSet<Prestamo> Prestamos { get; set; }
     public virtual DbSet<Sancion> Sanciones { get; set; }
+    public virtual DbSet<SancionEscapado> SancionesEscapado { get; set; }
     public virtual DbSet<HorarioSeccion> HorariosSecciones { get; set; }
     public virtual DbSet<RegistroBiblioteca> RegistrosBiblioteca { get; set; }
     public virtual DbSet<RegistroSeccionBiblioteca> RegistrosSeccionesBiblioteca { get; set; }
@@ -241,6 +242,61 @@ public partial class AppDbContext : DbContext
             entity.Property(e => e.Observaciones).HasColumnName("observaciones");
             entity.Property(e => e.CreadoEn).HasColumnName("creado_en").HasDefaultValueSql("NOW()");
             entity.Property(e => e.ActualizadoEn).HasColumnName("actualizado_en").HasDefaultValueSql("NOW()");
+        });
+
+        modelBuilder.Entity<SancionEscapado>(entity =>
+        {
+            entity.ToTable("sanciones_escapado", table =>
+            {
+                table.HasCheckConstraint("chk_sanciones_escapado_dia", "dia_semana IN ('lunes', 'martes', 'miercoles', 'jueves', 'viernes')");
+                table.HasCheckConstraint("chk_sanciones_escapado_estado", "estado IN ('pendiente', 'sancionada', 'descartada')");
+                table.HasCheckConstraint("chk_sanciones_escapado_horas", "hora_inicio < hora_fin");
+            });
+
+            entity.HasKey(e => e.IdEscapado).HasName("sanciones_escapado_pkey");
+            entity.Property(e => e.IdEscapado).HasColumnName("id_escapado").ValueGeneratedOnAdd();
+            entity.Property(e => e.IdUsuario).HasColumnName("id_usuario");
+            entity.Property(e => e.IdHorario).HasColumnName("id_horario");
+            entity.Property(e => e.Fecha).HasColumnName("fecha").HasDefaultValueSql("CURRENT_DATE");
+            entity.Property(e => e.Hora).HasColumnName("hora").HasDefaultValueSql("CURRENT_TIME");
+            entity.Property(e => e.DiaSemana).HasColumnName("dia_semana").HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Seccion).HasColumnName("seccion").HasMaxLength(50).IsRequired();
+            entity.Property(e => e.HoraInicio).HasColumnName("hora_inicio");
+            entity.Property(e => e.HoraFin).HasColumnName("hora_fin");
+            entity.Property(e => e.Materia).HasColumnName("materia").HasMaxLength(100);
+            entity.Property(e => e.Docente).HasColumnName("docente").HasMaxLength(150);
+            entity.Property(e => e.Aula).HasColumnName("aula").HasMaxLength(50);
+            entity.Property(e => e.Estado).HasColumnName("estado").HasMaxLength(20).HasDefaultValue("pendiente");
+            entity.Property(e => e.Observaciones).HasColumnName("observaciones");
+            entity.Property(e => e.IdSancion).HasColumnName("id_sancion");
+            entity.Property(e => e.CreadoEn).HasColumnName("creado_en").HasDefaultValueSql("NOW()");
+            entity.Property(e => e.ActualizadoEn).HasColumnName("actualizado_en").HasDefaultValueSql("NOW()");
+
+            entity.HasIndex(e => e.Fecha).HasDatabaseName("idx_sanciones_escapado_fecha");
+            entity.HasIndex(e => e.IdUsuario).HasDatabaseName("idx_sanciones_escapado_usuario");
+            entity.HasIndex(e => e.Estado).HasDatabaseName("idx_sanciones_escapado_estado");
+            entity.HasIndex(e => e.Seccion).HasDatabaseName("idx_sanciones_escapado_seccion");
+            entity.HasIndex(e => new { e.IdUsuario, e.IdHorario, e.Fecha })
+                .IsUnique()
+                .HasDatabaseName("uq_sanciones_escapado_dia_bloque");
+
+            entity.HasOne(e => e.Usuario)
+                .WithMany()
+                .HasForeignKey(e => e.IdUsuario)
+                .HasConstraintName("fk_sanciones_escapado_usuario")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Horario)
+                .WithMany()
+                .HasForeignKey(e => e.IdHorario)
+                .HasConstraintName("fk_sanciones_escapado_horario")
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Sancion)
+                .WithMany()
+                .HasForeignKey(e => e.IdSancion)
+                .HasConstraintName("fk_sanciones_escapado_sancion")
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<RegistroBiblioteca>(entity =>

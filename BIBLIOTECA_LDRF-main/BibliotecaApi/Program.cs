@@ -75,6 +75,7 @@ public partial class Program
         builder.Services.AddScoped<IDescargaLN, DescargaLN>();
         builder.Services.AddScoped<IPrestamoLN, PrestamoLN>();
         builder.Services.AddScoped<ISancionLN, SancionLN>();
+        builder.Services.AddScoped<ISancionEscapadoLN, SancionEscapadoLN>();
         builder.Services.AddScoped<IHorarioSeccionLN, HorarioSeccionLN>();
 
         // ============================
